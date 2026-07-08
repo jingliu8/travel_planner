@@ -1,0 +1,17 @@
+# LLM API
+openai>=1.100.0
+
+# Load environment variables from .env
+python-dotenv>=1.1.0
+
+# Data models and validation
+pydantic>=2.11.0
+
+# HTTP client (used by OpenAI and useful for future APIs)
+httpx>=0.28.0
+
+# Type hints (Python < 3.11 compatibility)
+typing-extensions>=4.14.0
+
+# Unit test
+pytest>=8.0.0
