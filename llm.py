@@ -1,5 +1,6 @@
 from openai import OpenAI
 from config import OPENAI_API_KEY, MODEL
+from models import TravelPlan
 
 class LLMClient():
     def __init__(self, client=None):
