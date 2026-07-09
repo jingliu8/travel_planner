@@ -1,19 +1,26 @@
-from dataclasses import dataclass
 from pydantic import BaseModel
+from typing import Optional
 
-@dataclass
 class TravelRequest(BaseModel):
     destination: str
     days: int
     interests: list[str]
 
-@dataclass
 class DayPlan(BaseModel):
     day: int
     activities: list[str]
     restaurants: list[str]
 
-@dataclass
 class TravelPlan(BaseModel):
     destination: str
     days: list[DayPlan]
+
+class Document(BaseModel):
+    source: str
+    content: str
+
+class Chunk(BaseModel):
+    id: str
+    source: str
+    content: str
+    embedding: Optional[list[float]] = None
