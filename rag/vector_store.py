@@ -40,6 +40,7 @@ class SupabaseVectorStore:
                     id=row['id'],
                     source=row['source'],
                     content=row['content'],
+                    similarity=row['similarity'],
                 )
             )
         return chunks

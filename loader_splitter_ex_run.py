@@ -38,3 +38,4 @@ for chunk in chunks:
     print("=" * 50)
     print(chunk.source)
     print(chunk.content)
+    print(chunk.similarity)

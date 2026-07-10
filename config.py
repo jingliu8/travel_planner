@@ -34,6 +34,9 @@ OPENAI_API_KEY: str = _get_required_env("OPENAI_API_KEY")
 SUPABASE_URL: str = _get_required_env("SUPABASE_URL")
 SUPABASE_KEY: str = _get_required_env("SUPABASE_KEY")
 
+SIMILARITY_THRESHOLD = 0.5
+TOP_K = 5
+
 # Optional configuration with defaults
 MODEL: str = _get_optional_env("MODEL", "gpt-5-mini")
 TEMPERATURE: float = float(_get_optional_env("TEMPERATURE", "0.7"))

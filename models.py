@@ -24,3 +24,4 @@ class Chunk(BaseModel):
     source: str
     content: str
     embedding: Optional[list[float]] = None
+    similarity: Optional[float] = None

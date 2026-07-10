@@ -1,3 +1,5 @@
+from openai.resources.containers.files import content
+
 from llm import LLMClient
 from prompts import TRAVEL_PLANNER_SYSTEM_PROMPT, TRAVEL_USER_PROMPT
 from models import TravelPlan, TravelRequest
@@ -17,6 +19,10 @@ class TravelPlanner:
                 """
         chunks = self.retriever.retrieve(query)
 
+        if not chunks:
+            context = 'No relevant knowledge was found'
+        else:
+            context = '\n\n'.join(chunk.content for chunk in chunks)
         # print("=" * 60)
         # print("Retrieved Chunks")
         # print("=" * 60)
@@ -25,8 +31,6 @@ class TravelPlanner:
         #     print(chunk.source)
         #     print(chunk.content)
         #     print("-" * 40)
-
-        context = '\n\n'.join(chunk.content for chunk in chunks)
 
         user_input = TRAVEL_USER_PROMPT.format(
             context=context,
