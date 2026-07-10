@@ -35,6 +35,6 @@ SUPABASE_URL: str = _get_required_env("SUPABASE_URL")
 SUPABASE_KEY: str = _get_required_env("SUPABASE_KEY")
 
 # Optional configuration with defaults
-MODEL: str = _get_optional_env("MODEL", "gpt-4-mini")
+MODEL: str = _get_optional_env("MODEL", "gpt-5-mini")
 TEMPERATURE: float = float(_get_optional_env("TEMPERATURE", "0.7"))
 MAX_TOKENS: int = int(_get_optional_env("MAX_TOKENS", "1000"))

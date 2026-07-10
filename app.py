@@ -1,39 +1,31 @@
 from llm import LLMClient
-from planner import TravelPlanner
 from models import TravelRequest
-
+from planner import TravelPlanner
+from rag.embedding import EmbeddingModel
+from rag.retriever import Retriever
+from rag.vector_store import SupabaseVectorStore
+from config import SUPABASE_URL, SUPABASE_KEY
 
 def main():
-    # 1. Create LLM client
+
     llm = LLMClient()
 
-    # 2. Inject llm client into planner
-    planner = TravelPlanner(llm_client=llm)
+    # RAG
+    embedding_model = EmbeddingModel()
+    vector_store = SupabaseVectorStore(SUPABASE_URL, SUPABASE_KEY)
+    retriever = Retriever(embedding_model, vector_store)
 
-    # 3. Create user request
+    # User Input + Knowledge
+    planner = TravelPlanner(llm, retriever)
     request = TravelRequest(
         destination='Asheville',
         days=4,
         interests=['hiking', 'nature', 'hot springs']
     )
-    # 4. Generate itinerary
+
+    # Generate Itinerary
     plan = planner.generate_itinerary(request)
-
-    # 5. Consume TravelPlan object
-    print("=" * 50)
-    print(f"Destination: {plan.destination}")
-    print("=" * 50)
-
-    for day_plan in plan.days:
-        print(f"\nDay {day_plan.day}")
-
-        print("Activities:")
-        for activity in day_plan.activities:
-            print(f"  - {activity}")
-
-        print("Restaurants:")
-        for restaurant in day_plan.restaurants:
-            print(f"  - {restaurant}")
+    print(plan.model_dump_json(indent=2))
 
 
 if __name__ == "__main__":
