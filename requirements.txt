@@ -16,3 +16,4 @@ typing-extensions>=4.14.0
 # Unit test
 pytest>=8.0.0
 
+requests
