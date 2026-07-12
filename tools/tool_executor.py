@@ -1,14 +1,10 @@
-from tools.weather import get_weather
-from tools.flight import search_flight
+from typing import Any
 
-class ToolExecutor:
-    def execute(self, tool_name: str, arguments: dict):
-        if tool_name == "get_weather":
-            return get_weather(**arguments)
+from tools.tool_registry import ToolRegistry
 
-        if tool_name == "search_flight":
-            return search_flight(**arguments)
+class ToolExecutor():
+    def __init__(self, registry: ToolRegistry):
+        self.registry = registry
 
-        raise ValueError(
-            f'Tool "{tool_name}" is not supported.'
-        )
+    def execute(self, tool_name: str, arguments: dict[str, Any]):
+        return self.registry.execute(name=tool_name, args=arguments)

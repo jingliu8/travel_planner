@@ -29,13 +29,3 @@ def search_flight(
             }
         ]
     }
-
-
-
-result = search_flight(
-    "New York",
-    "Asheville",
-    "2026-08-01"
-)
-
-print(result)
