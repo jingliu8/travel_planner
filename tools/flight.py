@@ -1,6 +1,8 @@
-from datetime import datetime
+from tools.tool_registry import tool
+from tools.tool_definitions import flight_tool
 
 
+@tool(flight_tool)
 def search_flight(
         origin: str,
         destination: str,
@@ -9,7 +11,6 @@ def search_flight(
     """
     Search available flights.
     """
-
     return {
         "origin": origin,
         "destination": destination,
