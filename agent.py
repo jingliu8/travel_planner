@@ -1,8 +1,9 @@
 import json
+from typing import final
+
 from llm import LLMClient
 from tools.tool_executor import ToolExecutor
 from tools.tool_registry import ToolRegistry
-from prompts import TRAVEL_PLANNER_SYSTEM_PROMPT
 
 class Agent:
 
@@ -18,16 +19,17 @@ class Agent:
         self.tool_registry = tool_registry
         self.max_iterations = max_iterations
 
-    def run(self, system_prompt: str, user_input: str):
+    def run(self, system_prompt: str, user_input: str, output_schema=None):
         response = self.llm.create_response(
             instructions=system_prompt,
-            user_input=user_input,
+            input=user_input,
             tools=self.tool_registry.get_definitions(),
             store=True
         )
 
         for i in range(self.max_iterations):
             print(f'========= Agent iteration {i + 1} =========')
+
             tool_outputs = []
 
             for item in response.output:
@@ -48,12 +50,19 @@ class Agent:
             # No tool calls means we are done
             if not tool_outputs:
                 print("============ Agent finished =============")
+                if output_schema:
+                    response = self.llm.create_response(
+                        previous_response_id=response.id,
+                        input='Continue and provide the final answer.',
+                        output_schema=output_schema
+                    )
                 return response.output_text
 
             # Send ALL tool results back
             response = self.llm.create_response(
                 previous_response_id=response.id,
-                user_input=tool_outputs,
+                input=tool_outputs,
                 tools=self.tool_registry.get_definitions(),
             )
+
         raise RuntimeError('Agent exceeded maximum number of iterations')

@@ -40,7 +40,12 @@ class TravelPlanner:
             days=request.days,
             interests=", ".join(request.interests)
         )
-        response = self.agent.run(TRAVEL_PLANNER_SYSTEM_PROMPT, user_input)
+
+        response = self.agent.run(
+            system_prompt=TRAVEL_PLANNER_SYSTEM_PROMPT,
+            user_input=user_input,
+            output_schema=TravelPlan.model_json_schema(),
+        )
         # print("======== RAW RESPONSE ========")
         # print(response)
         # print("==============================")

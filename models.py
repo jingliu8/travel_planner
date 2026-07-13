@@ -1,5 +1,6 @@
 from typing import Optional
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict
+
 
 ################## RAG #####################
 class Document(BaseModel):
@@ -20,14 +21,17 @@ class TravelRequest(BaseModel):
     interests: list[str]
 
 class Activity(BaseModel):
+    model_config = ConfigDict(extra='forbid')
     time: str
     activity: str
 
 class DayPlan(BaseModel):
+    model_config = ConfigDict(extra='forbid')
     day: int
     activities: list[Activity]
     restaurants: list[str]
 
 class TravelPlan(BaseModel):
+    model_config = ConfigDict(extra='forbid')
     destination: str
     days: list[DayPlan]

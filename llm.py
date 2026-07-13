@@ -11,19 +11,27 @@ class LLMClient:
     def create_response(
         self,
         *,
-        user_input,
+        input,
         instructions=None,
         tools=None,
         previous_response_id=None,
+        output_schema=None,
         store=False
     ):
         kwargs = {
             'model': self.model,
-            'input': user_input,
+            'input': input,
         }
         if instructions: kwargs['instructions'] = instructions
         if previous_response_id: kwargs['previous_response_id'] = previous_response_id
         if tools: kwargs['tools'] = tools
         if store: kwargs['store'] = True
-
+        if output_schema: kwargs['text'] = {
+            'format': {
+                'type': 'json_schema',
+                'name': 'travel_plan',
+                'schema': output_schema,
+                'strict': True
+            }
+        }
         return self.client.responses.create(**kwargs)
