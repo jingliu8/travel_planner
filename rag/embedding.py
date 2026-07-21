@@ -1,6 +1,6 @@
 from openai import OpenAI
 from config import OPENAI_API_KEY
-from models import Chunk
+from models.rag import Chunk
 
 class EmbeddingModel:
 

@@ -27,8 +27,8 @@ class LLMClient:
         if output_schema: kwargs['text'] = {
             'format': {
                 'type': 'json_schema',
-                'name': 'travel_plan',
-                'schema': output_schema,
+                'name': output_schema.__name__,
+                'schema': output_schema.model_json_schema(),
                 'strict': True
             }
         }

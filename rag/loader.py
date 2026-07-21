@@ -1,5 +1,5 @@
 from pathlib import Path
-from models import Document
+from models.rag import Document
 
 class DocumentLoader:
     def __init__(self, knowledge_dir: str):

@@ -1,5 +1,5 @@
 from supabase import create_client
-from models import Chunk
+from models.rag import Chunk
 
 class SupabaseVectorStore:
 

@@ -1,4 +1,4 @@
-from memory.models import SemanticMemory
+from models.memory import SemanticMemory
 from memory.store import MemoryStore
 
 

@@ -4,6 +4,8 @@ from llm import LLMClient
 from memory.extractor import MemoryExtractor
 from memory.retriever import MemoryRetriever
 from memory.store import MemoryStore
+from planning.planner import Planner
+from models.planning import Plan
 from tools.tool_executor import ToolExecutor
 from tools.tool_registry import ToolRegistry
 
@@ -17,18 +19,33 @@ class Agent:
         memory_retriever: MemoryRetriever,
         memory_extractor: MemoryExtractor,
         memory_store: MemoryStore,
+        planner: Planner,
         max_iterations=5
     ):
         self.llm = llm
         self.tool_executor = tool_executor
         self.tool_registry = tool_registry
+
         self.memory_retriever = memory_retriever
         self.memory_extractor = memory_extractor
         self.memory_store = memory_store
+
+        self.planner = planner
+
         self.max_iterations = max_iterations
 
     def run(self, system_prompt: str, user_input: str, output_schema=None):
-        augmented_input = self._build_augmented_input(user_input)
+
+        plan = self.planner.create_plan(user_input)
+        plan_context = '\n'.join(f'{step.step}. {step.description}' for step in plan.steps)
+
+        print("======== PLAN ========")
+        print(plan.goal)
+
+        for step in plan.steps:
+            print(step.step, step.description)
+
+        augmented_input = self._build_augmented_input(user_input, plan, plan_context)
 
         response = self.llm.create_response(
             instructions=system_prompt,
@@ -44,14 +61,11 @@ class Agent:
             if not tool_outputs:
                 print("============ Agent finished ===========")
 
-                answer = self._finalize_response(
-                    response,
-                    output_schema
-                )
+                answer = self._finalize_response(response, output_schema)
 
                 memory_operations = self._extract_memory_operations(user_input)
                 self.memory_store.apply_batch(memory_operations.operations)
-                
+
                 return answer
 
             response = self.llm.create_response(
@@ -62,7 +76,7 @@ class Agent:
 
         raise RuntimeError('Agent exceeded maximum number of iterations')
 
-    def _build_augmented_input(self, user_input: str) -> str:
+    def _build_augmented_input(self, user_input: str, plan: Plan, plan_context: str) -> str:
         memory_context = 'No known user memories'
         memories = self.memory_retriever.retrieve(user_input)
         if memories:
@@ -73,6 +87,14 @@ class Agent:
         return f"""
         # User Memory
         {memory_context}
+        
+        # Execution Plan
+        
+        Goal:
+        {plan.goal}
+        
+        Steps:
+        {plan_context}
         
         # Current Request
         {user_input}
@@ -92,10 +114,7 @@ class Agent:
             # print("Arguments:", item.arguments)
 
             arguments = json.loads(item.arguments)
-            result = self.tool_executor.execute(
-                item.name,
-                arguments
-            )
+            result = self.tool_executor.execute(item.name, arguments)
 
             # print("Tool result:")
             # print(result)

@@ -1,4 +1,4 @@
-from memory.models import SemanticMemoryList, MemoryOperationList
+from models.memory import MemoryOperationList
 from memory.prompts import MEMORY_EXTRACTION_PROMPT
 
 class MemoryExtractor:

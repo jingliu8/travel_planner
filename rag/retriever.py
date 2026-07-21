@@ -1,4 +1,4 @@
-from models import Chunk
+from models.rag import Chunk
 from rag.embedding import EmbeddingModel
 from rag.vector_store import SupabaseVectorStore
 from config import SIMILARITY_THRESHOLD, TOP_K

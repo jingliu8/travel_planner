@@ -1,4 +1,4 @@
-from models import Chunk, Document
+from models.rag import Chunk, Document
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 class TextSplitter:
