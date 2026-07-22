@@ -1,5 +1,3 @@
-import sys
-
 from agent import Agent
 from llm import LLMClient
 from memory.database import MemoryDatabase
@@ -21,8 +19,6 @@ from memory.extractor import MemoryExtractor
 
 from prompts import TRAVEL_PLANNER_SYSTEM_PROMPT
 from models.tools import TravelPlan
-
-# TODO: FOR NOW NEED TO KEEP THESE TWO IMPORT TO ADD THEM INTO REGISTRY
 
 def main():
     llm = LLMClient()
@@ -59,6 +55,7 @@ def main():
         output_schema=TravelPlan
     )
 
+    print(answer)
 
 if __name__ == "__main__":
     main()
