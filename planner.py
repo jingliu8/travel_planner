@@ -1,5 +1,5 @@
 from prompts import TRAVEL_PLANNER_SYSTEM_PROMPT, TRAVEL_USER_PROMPT
-from models import TravelPlan, TravelRequest
+from models.tools import TravelPlan, TravelRequest
 from rag.retriever import Retriever
 from agent import Agent
 from tools.tool_executor import ToolExecutor

@@ -17,3 +17,5 @@ typing-extensions>=4.14.0
 pytest>=8.0.0
 
 requests
+
+langchain_text_splitters
