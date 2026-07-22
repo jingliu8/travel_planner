@@ -1,10 +1,17 @@
+import sys
+
 from agent import Agent
 from llm import LLMClient
+from memory.database import MemoryDatabase
+
 from planning.planner import Planner
+
 from rag.embedding import EmbeddingModel
 from rag.retriever import Retriever
 from rag.vector_store import SupabaseVectorStore
 from config import SUPABASE_URL, SUPABASE_KEY
+from tools.weather_tool import WeatherTool
+from tools.search_knowledge_tool import SearchKnowledgeTool
 from tools.tool_executor import ToolExecutor
 from tools.tool_registry import ToolRegistry
 
@@ -16,32 +23,28 @@ from prompts import TRAVEL_PLANNER_SYSTEM_PROMPT
 from models.tools import TravelPlan
 
 # TODO: FOR NOW NEED TO KEEP THESE TWO IMPORT TO ADD THEM INTO REGISTRY
-from tools.weather import get_weather
-from tools.flight import search_flight
 
 def main():
+    llm = LLMClient()
 
-    llm_client = LLMClient()
+    planner = Planner(llm)
 
-    # RAG
-    # embedding_model = EmbeddingModel()
-    # vector_store = SupabaseVectorStore(SUPABASE_URL, SUPABASE_KEY)
-    # retriever = Retriever(embedding_model, vector_store)
-
-    # Tool Registry - already populated via @tool decorators
-    tool_registry = ToolRegistry()
-    tool_executor = ToolExecutor(registry=tool_registry)
-
-    # Memory
-    memory_store = MemoryStore()
+    memory_db = MemoryDatabase('memory.db')
+    memory_store = MemoryStore(memory_db)
     memory_retriever = MemoryRetriever(memory_store)
-    memory_extractor = MemoryExtractor(llm_client)
+    memory_extractor = MemoryExtractor(llm)
 
-    # Planner
-    planner = Planner(llm_client)
+    embedding_model = EmbeddingModel()
+    vector_store = SupabaseVectorStore(SUPABASE_URL, SUPABASE_KEY)
+    knowledge_retriever = Retriever(embedding_model, vector_store)
+
+    tool_registry = ToolRegistry()
+    tool_registry.register(WeatherTool())
+    tool_registry.register(SearchKnowledgeTool(knowledge_retriever))
+    tool_executor = ToolExecutor(tool_registry)
 
     agent = Agent(
-        llm_client,
+        llm,
         tool_executor,
         tool_registry,
         memory_retriever,
@@ -52,14 +55,9 @@ def main():
 
     answer = agent.run(
         system_prompt=TRAVEL_PLANNER_SYSTEM_PROMPT,
-        user_input="""
-        Plan a 4-day hiking trip to Asheville in late October.
-        I want beautiful scenery, moderate hikes, and good local food.
-        """,
-        output_schema=TravelPlan,
+        user_input='What are the best hiking trails near Asheville?',
+        output_schema=TravelPlan
     )
-
-    print(answer)
 
 
 if __name__ == "__main__":

@@ -3,8 +3,8 @@ from memory.database import MemoryDatabase
 
 class MemoryStore:
 
-    def __init__(self):
-        self.database = MemoryDatabase()
+    def __init__(self, database: MemoryDatabase):
+        self.database = database
 
     def apply(self, operation: MemoryOperation):
         memory = operation.memory

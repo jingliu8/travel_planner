@@ -110,14 +110,14 @@ class Agent:
             if item.type != "function_call":
                 continue
 
-            # print("Tool Name:", item.name)
-            # print("Arguments:", item.arguments)
+            print("Tool Name:", item.name)
+            print("Arguments:", item.arguments)
 
             arguments = json.loads(item.arguments)
             result = self.tool_executor.execute(item.name, arguments)
 
-            # print("Tool result:")
-            # print(result)
+            print("Tool result:")
+            print(result)
 
             tool_outputs.append({
                 "type": "function_call_output",
