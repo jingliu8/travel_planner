@@ -36,7 +36,7 @@ class EmbeddingModel:
         Raises:
             ValueError: If text is empty
         """
-        if not text or not text.strip():
+        if not text:
             raise ValueError("text cannot be empty")
         
         response = self.client.embeddings.create(model=self.model, input=text)

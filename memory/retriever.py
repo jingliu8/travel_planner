@@ -1,7 +1,6 @@
 from models.memory import SemanticMemory
 from memory.store import MemoryStore
 
-
 class MemoryRetriever:
 
     def __init__(self, store: MemoryStore):
