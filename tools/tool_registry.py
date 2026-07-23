@@ -96,3 +96,12 @@ class ToolRegistry:
             Number of tools
         """
         return len(self.tools)
+
+# Test
+# from tools.weather_tool import WeatherTool
+# import json
+#
+# tool_registry = ToolRegistry()
+# tool_registry.register(WeatherTool())
+# available_tools = tool_registry.get_definitions()
+# print(json.dumps(available_tools, indent=2))

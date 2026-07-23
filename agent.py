@@ -49,7 +49,7 @@ class Agent:
 
         response = self.llm.create_response(
             instructions=system_prompt,
-            input=augmented_input,
+            user_input=augmented_input,
             tools=self.tool_registry.get_definitions(),
             store=True
         )
@@ -64,14 +64,16 @@ class Agent:
                 answer = self._finalize_response(response, output_schema)
 
                 memory_operations = self._extract_memory_operations(user_input)
-                self.memory_store.apply_batch(memory_operations.operations)
+
+                if len(memory_operations.operations) > 0:
+                    self.memory_store.apply_batch(memory_operations.operations)
 
                 return answer
 
             response = self.llm.create_response(
                 previous_response_id=response.id,
-                input=tool_outputs,
-                tools=self.tool_registry.get_definitions(),
+                user_input=tool_outputs,
+                tools=self.tool_registry.get_definitions()
             )
 
         raise RuntimeError('Agent exceeded maximum number of iterations')
@@ -131,7 +133,7 @@ class Agent:
         if output_schema:
             response = self.llm.create_response(
                 previous_response_id=response.id,
-                input="Continue and provide the final answer.",
+                user_input="Continue and provide the final answer.",
                 output_schema=output_schema
             )
 

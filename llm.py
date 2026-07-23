@@ -1,6 +1,6 @@
 from openai import OpenAI
 from config import OPENAI_API_KEY, MODEL
-from typing import Optional, Dict, Any, List
+from typing import Optional, Dict, Any, List, Union
 
 class LLMClient:
     """Client for interacting with OpenAI's API."""
@@ -25,18 +25,18 @@ class LLMClient:
     def create_response(
         self,
         *,
-        input: str,
+        user_input: str,
         instructions: Optional[str] = None,
         tools: Optional[List[Dict[str, Any]]] = None,
         previous_response_id: Optional[str] = None,
-        output_schema: Optional[Dict[str, Any]] = None,
+        output_schema: Any = None,
         store: bool = False
     ) -> Any:
         """
         Create a response from the LLM.
         
         Args:
-            input: Main input/prompt for the LLM
+            user_input: Main input/prompt for the LLM
             instructions: System instructions for the LLM
             tools: List of tool definitions available to the LLM
             previous_response_id: ID of previous response for context
@@ -45,17 +45,13 @@ class LLMClient:
             
         Returns:
             Response from OpenAI API
-            
-        Raises:
-            ValueError: If input is empty
-            Exception: If API call fails
         """
-        if not input:
+        if not user_input:
             raise ValueError("input cannot be empty")
         
         kwargs = {
             'model': self.model,
-            'input': input,
+            'input': user_input,
         }
         
         if instructions:
@@ -75,8 +71,8 @@ class LLMClient:
                 'format': {
                     'type': 'json_schema',
                     'name': output_schema.__name__,
-                    'schema': output_schema.model_json_schema(),
-                    'strict': True
+                    'strict': True,
+                    'schema': output_schema.model_json_schema()
                 }
             }
 

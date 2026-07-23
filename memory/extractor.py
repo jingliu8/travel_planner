@@ -39,7 +39,7 @@ class MemoryExtractor:
         try:
             response = self.llm.create_response(
                 instructions=MEMORY_EXTRACTION_PROMPT,
-                input=user_input
+                user_input=user_input
             )
         except Exception as e:
             raise Exception(f"Failed to extract memories from input: {str(e)}")

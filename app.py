@@ -23,8 +23,6 @@ from models.tools import TravelPlan
 def main():
     llm = LLMClient()
 
-    planner = Planner(llm)
-
     memory_db = MemoryDatabase('memory.db')
     memory_store = MemoryStore(memory_db)
     memory_retriever = MemoryRetriever(memory_store)
@@ -38,6 +36,8 @@ def main():
     tool_registry.register(WeatherTool())
     tool_registry.register(SearchKnowledgeTool(knowledge_retriever))
     tool_executor = ToolExecutor(tool_registry)
+
+    planner = Planner(llm, tool_registry)
 
     agent = Agent(
         llm,
