@@ -45,7 +45,7 @@ class Agent:
         print(tool_results)
 
         # 3. Build final prompt
-        augmented_input = self._build_augmented_input(user_input, plan, tool_results)
+        augmented_input = self._build_augmented_input(user_input, tool_results)
 
         # 4. Ask LLM to generate answer
         response = self.llm.create_response(
