@@ -5,7 +5,6 @@ from memory.extractor import MemoryExtractor
 from memory.retriever import MemoryRetriever
 from memory.store import MemoryStore
 from planning.planner import Planner
-from models.planning import Plan
 from executor.plan_executor import PlanExecutor
 
 class Agent:
@@ -67,7 +66,6 @@ class Agent:
     def _build_augmented_input(
             self,
             user_input: str,
-            plan: Plan,
             tool_results: List[Any]
     ) -> str:
 
@@ -96,11 +94,6 @@ class Agent:
                 # User Memory
                 
                 {memory_context}
-            
-                # Execution Plan
-
-                Goal:
-                {plan.goal}
             
                 # Tool Results
             
