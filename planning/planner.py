@@ -41,7 +41,13 @@ class Planner:
             user_input=planning_input,
             output_schema=Plan,
         )
-
         return Plan.model_validate_json(
             response.output_text
         )
+
+# from tools.weather_tool import WeatherTool
+# llm = LLMClient()
+# tool_registry = ToolRegistry()
+# tool_registry.register(WeatherTool())
+# planner = Planner(llm, tool_registry)
+# print(planner.create_plan('Plan a 3 day hiking trip to Asheville.'))

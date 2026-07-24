@@ -1,6 +1,7 @@
 from llm import LLMClient
 from agent import Agent
 from planning.planner import Planner
+from executor.plan_executor import PlanExecutor
 
 from memory.database import MemoryDatabase
 
@@ -39,6 +40,7 @@ def main():
     tool_registry.register(WeatherTool())
     tool_registry.register(SearchKnowledgeTool(knowledge_retriever))
     tool_executor = ToolExecutor(tool_registry)
+    plan_executor = PlanExecutor(tool_executor)
 
     #------------------------ Planner ----------------------------------
     planner = Planner(llm, tool_registry)
@@ -46,8 +48,7 @@ def main():
     #------------------------ Agent ------------------------------------
     agent = Agent(
         llm,
-        tool_executor,
-        tool_registry,
+        plan_executor,
         memory_retriever,
         memory_extractor,
         memory_store,
@@ -58,7 +59,7 @@ def main():
     travel_planner = TravelPlanner(agent)
     request = TravelRequest(
         destination='Asheville',
-        days=4,
+        days=3,
         interests=[
             'hiking',
             'nature'
