@@ -78,16 +78,6 @@ Return valid JSON only.
 
 TRAVEL_USER_PROMPT = """
 You are creating a travel itinerary.
-
-Here is the relevant travel knowledge:
-
-======== KNOWLEDGE CONTEXT ========
-
-{context}
-
-======== END KNOWLEDGE CONTEXT ========
-
-
 Here is the user's request:
 
 Destination:
@@ -98,7 +88,6 @@ Number of days:
 
 Interests:
 {interests}
-
 
 Please create an itinerary that:
 - Uses the provided knowledge when applicable.

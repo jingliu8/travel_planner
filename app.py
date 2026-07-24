@@ -1,8 +1,9 @@
-from agent import Agent
 from llm import LLMClient
+from agent import Agent
+from planning.planner import Planner
+
 from memory.database import MemoryDatabase
 
-from planning.planner import Planner
 
 from rag.embedding import EmbeddingModel
 from rag.retriever import Retriever
@@ -17,10 +18,13 @@ from memory.store import MemoryStore
 from memory.retriever import MemoryRetriever
 from memory.extractor import MemoryExtractor
 
-from prompts import TRAVEL_PLANNER_SYSTEM_PROMPT
-from models.tools import TravelPlan
+from travel.travel_planner import TravelPlanner
+from travel.prompts import TRAVEL_PLANNER_SYSTEM_PROMPT
+from models.tools import TravelPlan, TravelRequest
+
 
 def main():
+    #------------------------- Infrastructure -----------------------------
     llm = LLMClient()
 
     memory_db = MemoryDatabase('memory.db')
@@ -37,8 +41,10 @@ def main():
     tool_registry.register(SearchKnowledgeTool(knowledge_retriever))
     tool_executor = ToolExecutor(tool_registry)
 
+    #------------------------ Planner ----------------------------------
     planner = Planner(llm, tool_registry)
 
+    #------------------------ Agent ------------------------------------
     agent = Agent(
         llm,
         tool_executor,
@@ -49,13 +55,18 @@ def main():
         planner
     )
 
-    answer = agent.run(
-        system_prompt=TRAVEL_PLANNER_SYSTEM_PROMPT,
-        user_input='What are the best hiking trails near Asheville?',
-        output_schema=TravelPlan
+    #------------------------- Application -------------------------------
+    travel_planner = TravelPlanner(agent)
+    request = TravelRequest(
+        destination='Asheville',
+        days=4,
+        interests=[
+            'hiking',
+            'nature'
+        ]
     )
-
-    print(answer)
+    itinerary = travel_planner.generate_itinerary(request)
+    print(itinerary.model_dump_json(indent=2))
 
 if __name__ == "__main__":
     main()

@@ -36,6 +36,7 @@ class Agent:
 
     def run(self, system_prompt: str, user_input: str, output_schema=None):
 
+        # generate plan context
         plan = self.planner.create_plan(user_input)
         plan_context = '\n'.join(f'{step.step}. {step.description}' for step in plan.steps)
 
@@ -45,8 +46,10 @@ class Agent:
         for step in plan.steps:
             print(step.step, step.description)
 
+        # adding semantic memory and the plan into user_input
         augmented_input = self._build_augmented_input(user_input, plan, plan_context)
 
+        # initial response from llm
         response = self.llm.create_response(
             instructions=system_prompt,
             user_input=augmented_input,
@@ -54,6 +57,7 @@ class Agent:
             store=True
         )
 
+        # tools
         for i in range(self.max_iterations):
             print(f'========= Agent iteration {i + 1} =========')
             tool_outputs = self._execute_tools(response)
@@ -63,8 +67,8 @@ class Agent:
 
                 answer = self._finalize_response(response, output_schema)
 
+                # update semantic memory
                 memory_operations = self._extract_memory_operations(user_input)
-
                 if len(memory_operations.operations) > 0:
                     self.memory_store.apply_batch(memory_operations.operations)
 
@@ -78,6 +82,8 @@ class Agent:
 
         raise RuntimeError('Agent exceeded maximum number of iterations')
 
+
+    # TODO: Refactor to separate memory context generation from this function
     def _build_augmented_input(self, user_input: str, plan: Plan, plan_context: str) -> str:
         memory_context = 'No known user memories'
         memories = self.memory_retriever.retrieve(user_input)

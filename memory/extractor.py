@@ -45,3 +45,4 @@ class MemoryExtractor:
             raise Exception(f"Failed to extract memories from input: {str(e)}")
 
         return MemoryOperationList.model_validate_json(response.output_text)
+

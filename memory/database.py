@@ -37,9 +37,7 @@ class MemoryDatabase:
                 CREATE TABLE IF NOT EXISTS {self.TABLE_NAME} (
                     key TEXT PRIMARY KEY,
                     category TEXT NOT NULL,
-                    value TEXT NOT NULL,
-                    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-                    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+                    value TEXT NOT NULL
                 )
             ''')
             self.conn.commit()
@@ -69,8 +67,8 @@ class MemoryDatabase:
         try:
             self.conn.execute(f'''
                 INSERT OR REPLACE 
-                INTO {self.TABLE_NAME} (category, key, value, updated_at)
-                VALUES (?, ?, ?, CURRENT_TIMESTAMP)
+                INTO {self.TABLE_NAME} (category, key, value)
+                VALUES (?, ?, ?)
             ''', (category, key, value))
             self.conn.commit()
         except sqlite3.Error as e:
@@ -178,3 +176,7 @@ class MemoryDatabase:
     def __exit__(self, exc_type, exc_val, exc_tb):
         """Context manager exit."""
         self.close()
+
+
+db = MemoryDatabase()
+print(db.get_all())

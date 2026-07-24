@@ -2,7 +2,6 @@ from pydantic import BaseModel
 
 from models.base import StrictBaseModel
 
-
 class TravelRequest(BaseModel):
     destination: str
     days: int
