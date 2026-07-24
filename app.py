@@ -19,8 +19,7 @@ from memory.retriever import MemoryRetriever
 from memory.extractor import MemoryExtractor
 
 from travel.travel_planner import TravelPlanner
-from travel.prompts import TRAVEL_PLANNER_SYSTEM_PROMPT
-from models.tools import TravelPlan, TravelRequest
+from models.tools import TravelRequest
 
 
 def main():
