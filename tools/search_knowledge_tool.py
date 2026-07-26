@@ -67,6 +67,12 @@ class SearchKnowledgeTool:
         """
         if not query or not query.strip():
             raise ValueError("query cannot be empty")
-        
-        return self.retriever.retrieve(query)
+
+        chunks = self.retriever.retrieve(query)
+
+        return [{
+            'source': chunk.source,
+            'content': chunk.content,
+            'similarity': chunk.similarity,
+        } for chunk in chunks]
 

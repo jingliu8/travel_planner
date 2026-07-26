@@ -97,7 +97,7 @@ class ToolRegistry:
         """
         return len(self.tools)
 
-# Test
+#Test
 # from tools.weather_tool import WeatherTool
 # import json
 #

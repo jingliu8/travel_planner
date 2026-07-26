@@ -41,5 +41,4 @@ class TravelPlanner:
             user_input=user_input,
             output_schema=TravelPlan,
         )
-
         return TravelPlan.model_validate_json(response)

@@ -58,4 +58,17 @@ class Retriever:
         
         query_embedding = self.embedding_model.embed_text(query)
         chunks = self.vector_store.search(query_embedding, self.top_k)
-        return [chunk for chunk in chunks if chunk.similarity >= self.similarity_threshold]
+        # print('===================RETRIEVER DEBUG====================')
+        # print('Query:', query)
+        # print('Raw chuncks:')
+        # print(len(chunks))
+        # for chunk in chunks:
+        #     print('Source:', chunk.source)
+        #     print('Similarity:', chunk.similarity)
+        #
+        # print('Threshold:', self.similarity_threshold)
+        filtered_chunks = [chunk for chunk in chunks if chunk.similarity >= self.similarity_threshold]
+        # print('Filtered chunks:')
+        # print(len(filtered_chunks))
+
+        return filtered_chunks

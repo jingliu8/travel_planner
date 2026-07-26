@@ -1,3 +1,4 @@
+import json
 from typing import Any, List
 
 from llm import LLMClient
@@ -36,7 +37,7 @@ class Agent:
         print(plan.goal)
 
         for step in plan.steps:
-            print(step.step, step.description, step.suggested_tool, step.tool_input)
+            print(step.step, step.description, step.suggested_tool, step.tool_arguments)
 
         # 2. Execute plan
         tool_results = self.plan_executor.execute(plan)
@@ -52,7 +53,6 @@ class Agent:
             instructions=system_prompt,
             user_input=augmented_input,
             output_schema=output_schema,
-            store=True
         )
         answer = response.output_text
 
@@ -80,26 +80,35 @@ class Agent:
                 ]
             )
 
-        execution_context = "No tool results"
+        tool_context = "No tool results"
 
         if tool_results:
-            execution_context = "\n\n".join(
-                [
-                    str(result)
-                    for result in tool_results
-                ]
-            )
+            tool_context = "\n\n".join([
+                f"""
+                Step {item['step']}
+                
+                Description: {item['description']}
+                
+                Tool: {item['tool']}
+                
+                Argument: {item['argument']}
+                
+                Output: {json.dumps(item['result'], indent=2)}
+
+                """
+                for item in tool_results
+            ])
 
         return f"""
-                # User Memory
-                
-                {memory_context}
-            
-                # Tool Results
-            
-                {execution_context}
-            
-                # User Request
-            
-                {user_input}
-                """
+        # User Request
+
+        {user_input}
+
+        # User Memory
+
+        {memory_context}
+
+        # Tool Results
+
+        {tool_context}
+        """

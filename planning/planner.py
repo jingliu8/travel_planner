@@ -27,13 +27,20 @@ class Planner:
         available_tools = self.tool_registry.get_definitions()
 
         planning_input = f"""
-            User Request: 
-            
-            {user_input}
-            
-            Available Tools:
-            
-            {json.dumps(available_tools, indent=2)}
+        # User Request
+
+        {user_input}
+
+        # Available Tools
+
+        {json.dumps(available_tools, indent=2)}
+
+        # Planning Instructions
+
+        For tool steps:
+        - suggested_tool must exactly match a tool name above.
+        - tool_arguments must follow the tool's parameter schema.
+        - Do not put arguments inside a string.
         """
 
         response = self.llm.create_response(
@@ -50,4 +57,10 @@ class Planner:
 # tool_registry = ToolRegistry()
 # tool_registry.register(WeatherTool())
 # planner = Planner(llm, tool_registry)
-# print(planner.create_plan('Plan a 3 day hiking trip to Asheville.'))
+#
+# plan = planner.create_plan('Plan a 3 day hiking trip to Asheville.')
+#
+# print("======== PLAN ========")
+# print(plan.goal)
+# for step in plan.steps:
+#     print(step.step, step.action_type, step.suggested_tool, step.tool_argument, step.description)

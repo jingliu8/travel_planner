@@ -1,40 +1,154 @@
 # AI Travel Planner Agent
 
-A personalized AI-powered travel planning application built to demonstrate modern AI engineering practices. The application generates customized travel itineraries based on user preferences and will gradually incorporate memory, tool calling, retrieval, planning, and agent capabilities.
+An AI-powered travel planning agent built to explore modern AI engineering patterns, including:
+
+* LLM orchestration
+* Planning and execution workflows
+* Tool integration
+* Retrieval-Augmented Generation (RAG)
+* Semantic memory
+* Structured outputs
+
+The goal is to build a controllable and extensible AI agent that can generate personalized travel itineraries.
+
+---
+
+## Architecture
+
+The agent uses a planner-controlled workflow:
+
+```
+User Request
+      |
+      v
+   Agent
+      |
+      v
+  Planner
+      |
+      v
+Execution Plan
+      |
+      v
+PlanExecutor
+      |
+      v
+   Tools
+      |
+      v
+Tool Results
+      |
+      v
+    LLM
+      |
+      v
+Final Response
+```
+
+The planner decides **what actions should happen**, the executor performs those actions, and the LLM generates the final answer using the collected information.
+
+---
 
 ## Project Structure
 
-```text
+```
 travel-agent/
 │
-├── app.py          # Application entry point
-├── config.py       # Loads environment variables and application configuration
-├── llm.py          # Wrapper around the OpenAI client for LLM interactions
-├── planner.py      # Core business logic for generating travel plans
-├── prompts.py      # Centralized prompt templates used by the application
-├── models.py       # Pydantic models and data structures
+├── app.py                  # Application entry point and dependency wiring
+├── agent.py                # Agent orchestration workflow
+├── llm.py                  # LLM client wrapper
+├── prompts.py              # Prompt templates
 │
-├── tools/          # External tools (weather, maps, flights, etc.)
-├── memory/         # User preferences and conversation memory
-├── data/           # Local knowledge base and RAG resources
-├── tests/          # Unit and integration tests
+├── planning/
+│   ├── planner.py          # Creates execution plans
+│   └── models.py           # Planning models
 │
+├── execution/
+│   └── plan_executor.py    # Executes planned actions
+│
+├── tools/
+│   ├── tool_registry.py    # Tool registration
+│   ├── tool_executor.py    # Tool execution
+│   └── weather_tool.py     # Weather capability
+│
+├── memory/                 # Semantic memory storage and retrieval
+├── rag/                    # Knowledge retrieval components
+├── travel/                 # Travel-specific logic
+├── models/                 # Shared data models
+│
+├── tests/
 ├── requirements.txt
-├── .env
 └── README.md
 ```
 
-## Responsibilities
+---
 
-| File         | Responsibility                                                                        |
-| ------------ | ------------------------------------------------------------------------------------- |
-| `app.py`     | Initializes the application, wires components together, and handles user interaction. |
-| `config.py`  | Loads API keys, model configuration, and other application settings.                  |
-| `llm.py`     | Provides a reusable interface for communicating with the language model.              |
-| `planner.py` | Contains the application's business logic for generating travel itineraries.          |
-| `prompts.py` | Stores reusable system prompts and prompt templates.                                  |
-| `models.py`  | Defines request/response models and validates structured data.                        |
-| `tools/`     | Contains integrations with external services and APIs.                                |
-| `memory/`    | Stores and retrieves long-term user preferences and conversation context.             |
-| `data/`      | Holds local documents and resources used for retrieval.                               |
-| `tests/`     | Contains automated tests for application components.                                  |
+## Components
+
+| Component    | Responsibility                                         |
+| ------------ | ------------------------------------------------------ |
+| Agent        | Coordinates planning, execution, memory, and LLM calls |
+| Planner      | Creates executable plans from user requests            |
+| PlanExecutor | Executes planned steps                                 |
+| Tools        | Provide external capabilities                          |
+| RAG          | Retrieves travel knowledge                             |
+| Memory       | Stores user preferences                                |
+| LLM          | Generates plans and final responses                    |
+
+---
+
+## Current Capabilities
+
+### Planning
+
+Creates structured execution plans that determine:
+
+* required actions
+* tool usage
+* execution order
+
+### Tools
+
+Current tools include:
+
+* Weather lookup
+* Knowledge search (RAG)
+
+### Memory
+
+Stores user preferences for personalization.
+
+Example:
+
+```
+Interest:
+hiking_nature
+
+Preference:
+Enjoys hiking and nature-focused activities
+```
+
+---
+
+## Future Improvements
+
+* Add explicit plan step types (`tool`, `user_input`, `reasoning`, `final_answer`)
+* Add replanning after execution feedback
+* Improve vector-based memory retrieval
+* Expand tools (maps, flights, hotels, restaurants)
+* Improve testing coverage
+
+---
+
+## Goal
+
+This project is a learning platform for designing AI agents with clear separation between:
+
+```
+Planning  ->  Execution  ->  Generation
+```
+
+making the system easier to debug, test, and extend.
+
+```
+```
