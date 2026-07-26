@@ -1,6 +1,7 @@
 import json
-from typing import Any
+from typing import Any, Optional
 
+from models.execution_result import ExecutionResult, ExecutionStatus
 from models.planning import Plan, PlanStep
 from tools.tool_executor import ToolExecutor
 
@@ -10,16 +11,21 @@ class PlanExecutor:
     def __init__(self, tool_executor: ToolExecutor):
         self.tool_executor = tool_executor
 
-    def execute(self, plan: Plan) -> list[Any]:
+    def execute(
+        self,
+        plan: Plan,
+        start_index: int = 0,
+        previous_results: Optional[list[Any]] = None,
+    ) -> ExecutionResult:
         """
         Execute all tool steps in the plan.
 
         Non-tool steps are skipped.
         """
 
-        results = []
+        results = previous_results or []
 
-        for step in plan.steps:
+        for step in plan.steps[start_index:]:
 
             print(f"Executing Step {step.step}: {step.description}")
 
@@ -48,55 +54,21 @@ class PlanExecutor:
             #=============== User Input =======================
             elif step.action_type == 'user_input':
                 print('User input required')
-                # TODO: pause execution and ask the user.
-                continue
+                return ExecutionResult(
+                    status=ExecutionStatus.WAITING_FOR_USER,
+                    plan=plan,
+                    next_step_index=plan.steps.index(step) + 1,
+                    tool_results=results,
+                    question=step.description,
+                )
             #=============== Final Answer =====================
             elif step.action_type == 'final_answer':
                 print('Final answer step reached')
                 break
 
-        return results
-
-
-    # def _build_arguments(self, step: PlanStep) -> dict[str, Any]:
-    #     """
-    #     Convert planner output into tool arguments.
-    #
-    #     Current planner contract:
-    #     tool_input is a string.
-    #
-    #     We support:
-    #     1. plain string input
-    #     2. JSON string input
-    #     """
-    #
-    #     tool_input = step.tool_input
-    #
-    #     if tool_input is None:
-    #         return {}
-    #
-    #     # If planner accidentally returns JSON string,
-    #     # convert it into a dictionary.
-    #     try:
-    #         parsed = json.loads(tool_input)
-    #
-    #         if isinstance(parsed, dict):
-    #             return parsed
-    #
-    #     except json.JSONDecodeError:
-    #         pass
-    #
-    #     # Otherwise use current string-based contract.
-    #     if step.suggested_tool == "get_weather":
-    #         return {
-    #             "city": tool_input
-    #         }
-    #
-    #     if step.suggested_tool == "search_knowledge":
-    #         return {
-    #             "query": tool_input
-    #         }
-    #
-    #     raise ValueError(
-    #         f"Unsupported tool: {step.suggested_tool}"
-    #     )
+        return ExecutionResult(
+            status=ExecutionStatus.COMPLETED,
+            plan=plan,
+            next_step_index=len(plan.steps),
+            tool_results=results,
+        )

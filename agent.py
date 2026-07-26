@@ -5,8 +5,19 @@ from llm import LLMClient
 from memory.extractor import MemoryExtractor
 from memory.retriever import MemoryRetriever
 from memory.store import MemoryStore
+from models.execution_result import ExecutionStatus, ExecutionResult
+from models.planning import Plan
 from planning.planner import Planner
 from executor.plan_executor import PlanExecutor
+
+
+def _print_travel_plan(plan: Plan) -> None:
+    print("======== PLAN ========")
+    print(plan.goal)
+
+    for step in plan.steps:
+        print(step.step, step.description, step.suggested_tool, step.tool_arguments)
+
 
 class Agent:
 
@@ -28,22 +39,22 @@ class Agent:
         self.planner = planner
         self.plan_executor = plan_executor
 
+        self.execution_state = None
+
     def run(self, system_prompt: str, user_input: str, output_schema=None):
 
         # 1. Create execution plan
         plan = self.planner.create_plan(user_input)
-
-        print("======== PLAN ========")
-        print(plan.goal)
-
-        for step in plan.steps:
-            print(step.step, step.description, step.suggested_tool, step.tool_arguments)
+        _print_travel_plan(plan)
 
         # 2. Execute plan
-        tool_results = self.plan_executor.execute(plan)
+        execution = self.plan_executor.execute(plan)
+        self.execution_state = execution
 
-        print("======== TOOL RESULTS ========")
-        print(tool_results)
+        if execution.status == ExecutionStatus.WAITING_FOR_USER:
+            return execution
+
+        tool_results = execution.tool_results
 
         # 3. Build final prompt
         augmented_input = self._build_augmented_input(user_input, tool_results)
@@ -54,14 +65,100 @@ class Agent:
             user_input=augmented_input,
             output_schema=output_schema,
         )
-        answer = response.output_text
+        execution.final_response = response.output_text
 
         # 5. Extract memory
         memory_operations = self.memory_extractor.extract(user_input)
         if len(memory_operations.operations) > 0:
             self.memory_store.apply_batch(memory_operations.operations)
 
-        return answer
+        return execution
+
+
+    def resume(
+        self,
+        user_answer: str,
+        system_prompt: str,
+        output_schema=None,
+    ) -> ExecutionResult:
+
+        execution = self.execution_state
+
+        if execution is None:
+            raise ValueError(
+                "No execution state available"
+            )
+
+        if execution.status != ExecutionStatus.WAITING_FOR_USER:
+            raise ValueError(
+                "Only waiting executions can be resumed"
+            )
+
+        if not user_answer or not user_answer.strip():
+            raise ValueError(
+                "user_answer cannot be empty"
+            )
+
+        # ==========================================
+        # 1. Add user's answer into execution state
+        # ==========================================
+
+        execution.tool_results.append({
+            'step': execution.next_step_index,
+            'description': execution.question,
+            'tool': 'user_input',
+            'argument': None,
+            'result': {'answer': user_answer},
+        })
+
+        # ==========================================
+        # 2. Continue executing remaining plan
+        # ==========================================
+
+        new_execution = self.plan_executor.execute(
+            plan=execution.plan,
+            start_index=execution.next_step_index,
+            previous_results=execution.tool_results,
+        )
+
+        # ==========================================
+        # 3. If another user input is needed
+        # ==========================================
+
+        if new_execution.status == ExecutionStatus.WAITING_FOR_USER:
+            self.execution_state = new_execution
+            return new_execution
+
+        # ==========================================
+        # 4. Build final LLM context
+        # ==========================================
+
+        augmented_input = self._build_augmented_input(
+            user_answer,
+            new_execution.tool_results,
+        )
+
+        # ==========================================
+        # 5. Generate final response
+        # ==========================================
+
+        response = self.llm.create_response(
+            instructions=system_prompt,
+            user_input=augmented_input,
+            output_schema=output_schema,
+            store=True,
+        )
+
+        # ==========================================
+        # 6. Save final response and execution state
+        # ==========================================
+
+        new_execution.final_response = response.output_text
+
+        self.execution_state = new_execution
+
+        return new_execution
+
 
     def _build_augmented_input(
             self,

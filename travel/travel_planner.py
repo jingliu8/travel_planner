@@ -1,4 +1,5 @@
 from agent import Agent
+from models.execution_result import ExecutionStatus
 from models.tools import TravelPlan, TravelRequest
 from travel.prompts import TRAVEL_USER_PROMPT, TRAVEL_PLANNER_SYSTEM_PROMPT
 
@@ -20,7 +21,7 @@ class TravelPlanner:
         self.agent = agent
 
 
-    def generate_itinerary(self, request: TravelRequest) -> TravelPlan:
+    def generate_itinerary(self, request: TravelRequest):
         """
         Generate a travel itinerary from a travel request.
 
@@ -36,9 +37,12 @@ class TravelPlanner:
             interests=', '.join(request.interests)
         )
 
-        response = self.agent.run(
+        execution = self.agent.run(
             system_prompt=TRAVEL_PLANNER_SYSTEM_PROMPT,
             user_input=user_input,
             output_schema=TravelPlan,
         )
-        return TravelPlan.model_validate_json(response)
+        if execution.status == ExecutionStatus.WAITING_FOR_USER:
+            return execution
+
+        return TravelPlan.model_validate_json(execution.final_response)
