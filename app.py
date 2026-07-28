@@ -43,7 +43,7 @@ def main():
     tool_registry.register(WeatherTool())
     tool_registry.register(SearchKnowledgeTool(knowledge_retriever))
     tool_executor = ToolExecutor(tool_registry)
-    plan_executor = PlanExecutor(tool_executor)
+    plan_executor = PlanExecutor(tool_executor, llm)
 
     #------------------------ Planner ----------------------------------
     planner = Planner(llm, tool_registry)

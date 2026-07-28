@@ -5,10 +5,11 @@ from llm import LLMClient
 from memory.extractor import MemoryExtractor
 from memory.retriever import MemoryRetriever
 from memory.store import MemoryStore
-from models.execution import ExecutionStatus, ExecutionEvent, ExecutionResult
+from models.execution import ExecutionStatus, ExecutionEvent, ExecutionResult, ExecutionAction
 from models.planning import Plan
 from planning.planner import Planner
 from executor.plan_executor import PlanExecutor
+from utils.common_utils import format_execution_history
 
 
 def _print_plan(plan: Plan) -> None:
@@ -16,7 +17,7 @@ def _print_plan(plan: Plan) -> None:
     print(plan.goal)
 
     for step in plan.steps:
-        print(step.step, step.description, step.suggested_tool, step.tool_arguments)
+        print(step.step, step.action_type, step.suggested_tool, step.tool_arguments, step.description,)
 
 
 class Agent:
@@ -104,7 +105,7 @@ class Agent:
             ExecutionEvent(
                 step=execution.next_step_index,
                 description=execution.question or 'User input required',
-                action='user_input',
+                action=ExecutionAction.USER_INPUT,
                 arguments=None,
                 result={'answer': user_answer},
             )
@@ -160,11 +161,11 @@ class Agent:
 
 
     def _build_augmented_input(
-            self,
-            user_input: str,
-            execution_history: List[ExecutionEvent],
+        self,
+        user_input: str,
+        execution_history: List[ExecutionEvent],
     ) -> str:
-
+        #================ User Memory ==========================
         memory_context = "No known user memories"
         memories = self.memory_retriever.retrieve(user_input)
 
@@ -175,25 +176,8 @@ class Agent:
                     for m in memories
                 ]
             )
-
-        tool_context = "No execution history"
-
-        if execution_history:
-            tool_context = "\n\n".join([
-                f"""
-                Step {item.step}
-                
-                Description: {item.description}
-                
-                Tool: {item.action}
-                
-                Argument: {item.arguments}
-                
-                Output: {json.dumps(item.result, indent=2)}
-
-                """
-                for item in execution_history
-            ])
+        #================= Execution History ====================
+        execution_context = format_execution_history(execution_history)
 
         return f"""
         # User Request
@@ -206,5 +190,5 @@ class Agent:
 
         # Tool Results
 
-        {tool_context}
+        {execution_context}
         """

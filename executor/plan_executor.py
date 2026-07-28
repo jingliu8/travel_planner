@@ -1,15 +1,17 @@
 import json
 from typing import Any, Optional
 
-from models.execution import ExecutionStatus, ExecutionEvent, ExecutionResult
+from llm import LLMClient
+from models.execution import ExecutionStatus, ExecutionEvent, ExecutionResult, ExecutionAction
 from models.planning import Plan
 from tools.tool_executor import ToolExecutor
 
 
 class PlanExecutor:
 
-    def __init__(self, tool_executor: ToolExecutor):
+    def __init__(self, tool_executor: ToolExecutor, llm: LLMClient):
         self.tool_executor = tool_executor
+        self.llm = llm
 
     def execute(
         self,
@@ -43,7 +45,7 @@ class PlanExecutor:
                     ExecutionEvent(
                         step=step.step,
                         description=step.description,
-                        action=step.suggested_tool,
+                        action=ExecutionAction.TOOL,
                         arguments=step.tool_arguments,
                         result=result,
                     )
@@ -51,8 +53,20 @@ class PlanExecutor:
                 continue
             #=============== Reasoning ========================
             elif step.action_type == 'reasoning':
-                print('Reasoning step - skipped for now')
-                continue
+                reasoning = self.llm.create_reasoning(
+                    instruction=step.description,
+                    execution_history=results,
+                )
+                results.append(
+                    ExecutionEvent(
+                        step=step.step,
+                        description=step.description,
+                        action=ExecutionAction.REASONING,
+                        arguments=None,
+                        result=reasoning,
+                    )
+                )
+
             #=============== User Input =======================
             elif step.action_type == 'user_input':
                 print('User input required')
