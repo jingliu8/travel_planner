@@ -1,8 +1,8 @@
 import json
 from typing import Any, Optional
 
-from models.execution_result import ExecutionResult, ExecutionStatus
-from models.planning import Plan, PlanStep
+from models.execution import ExecutionStatus, ExecutionEvent, ExecutionResult
+from models.planning import Plan
 from tools.tool_executor import ToolExecutor
 
 
@@ -15,7 +15,7 @@ class PlanExecutor:
         self,
         plan: Plan,
         start_index: int = 0,
-        previous_results: Optional[list[Any]] = None,
+        previous_results: Optional[list[ExecutionEvent]] = None,
     ) -> ExecutionResult:
         """
         Execute all tool steps in the plan.
@@ -25,27 +25,29 @@ class PlanExecutor:
 
         results = previous_results or []
 
-        for step in plan.steps[start_index:]:
+        for i in range(start_index, len(plan.steps)):
+            step = plan.steps[i]
 
             print(f"Executing Step {step.step}: {step.description}")
 
             #=============== Tool =============================
             if step.action_type == 'tool':
                 if step.suggested_tool is None:
-                    raise ValueError("Tool step {step.step} has no suggested tool")
+                    raise ValueError(f"Tool step {step.step} has no suggested tool")
 
-                # arguments = self._build_arguments(step)
                 result = self.tool_executor.execute(
                     step.suggested_tool,
                     step.tool_arguments
                 )
-                results.append({
-                    'step': step.step,
-                    'description': step.description,
-                    'tool': step.suggested_tool,
-                    'argument': step.tool_arguments,
-                    'result': result,
-                })
+                results.append(
+                    ExecutionEvent(
+                        step=step.step,
+                        description=step.description,
+                        action=step.suggested_tool,
+                        arguments=step.tool_arguments,
+                        result=result,
+                    )
+                )
                 continue
             #=============== Reasoning ========================
             elif step.action_type == 'reasoning':
@@ -57,8 +59,8 @@ class PlanExecutor:
                 return ExecutionResult(
                     status=ExecutionStatus.WAITING_FOR_USER,
                     plan=plan,
-                    next_step_index=plan.steps.index(step) + 1,
-                    tool_results=results,
+                    next_step_index=i + 1,
+                    execution_history=results,
                     question=step.description,
                 )
             #=============== Final Answer =====================
@@ -70,5 +72,5 @@ class PlanExecutor:
             status=ExecutionStatus.COMPLETED,
             plan=plan,
             next_step_index=len(plan.steps),
-            tool_results=results,
+            execution_history=results,
         )

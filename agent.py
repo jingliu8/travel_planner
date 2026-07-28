@@ -1,17 +1,17 @@
 import json
-from typing import Any, List
+from typing import List, Optional
 
 from llm import LLMClient
 from memory.extractor import MemoryExtractor
 from memory.retriever import MemoryRetriever
 from memory.store import MemoryStore
-from models.execution_result import ExecutionStatus, ExecutionResult
+from models.execution import ExecutionStatus, ExecutionEvent, ExecutionResult
 from models.planning import Plan
 from planning.planner import Planner
 from executor.plan_executor import PlanExecutor
 
 
-def _print_travel_plan(plan: Plan) -> None:
+def _print_plan(plan: Plan) -> None:
     print("======== PLAN ========")
     print(plan.goal)
 
@@ -45,7 +45,7 @@ class Agent:
 
         # 1. Create execution plan
         plan = self.planner.create_plan(user_input)
-        _print_travel_plan(plan)
+        _print_plan(plan)
 
         # 2. Execute plan
         execution = self.plan_executor.execute(plan)
@@ -54,10 +54,8 @@ class Agent:
         if execution.status == ExecutionStatus.WAITING_FOR_USER:
             return execution
 
-        tool_results = execution.tool_results
-
         # 3. Build final prompt
-        augmented_input = self._build_augmented_input(user_input, tool_results)
+        augmented_input = self._build_augmented_input(user_input, execution.execution_history)
 
         # 4. Ask LLM to generate answer
         response = self.llm.create_response(
@@ -102,14 +100,15 @@ class Agent:
         # ==========================================
         # 1. Add user's answer into execution state
         # ==========================================
-
-        execution.tool_results.append({
-            'step': execution.next_step_index,
-            'description': execution.question,
-            'tool': 'user_input',
-            'argument': None,
-            'result': {'answer': user_answer},
-        })
+        execution.execution_history.append(
+            ExecutionEvent(
+                step=execution.next_step_index,
+                description=execution.question or 'User input required',
+                action='user_input',
+                arguments=None,
+                result={'answer': user_answer},
+            )
+        )
 
         # ==========================================
         # 2. Continue executing remaining plan
@@ -118,7 +117,7 @@ class Agent:
         new_execution = self.plan_executor.execute(
             plan=execution.plan,
             start_index=execution.next_step_index,
-            previous_results=execution.tool_results,
+            previous_results=execution.execution_history,
         )
 
         # ==========================================
@@ -135,7 +134,7 @@ class Agent:
 
         augmented_input = self._build_augmented_input(
             user_answer,
-            new_execution.tool_results,
+            new_execution.execution_history,
         )
 
         # ==========================================
@@ -163,7 +162,7 @@ class Agent:
     def _build_augmented_input(
             self,
             user_input: str,
-            tool_results: List[Any]
+            execution_history: List[ExecutionEvent],
     ) -> str:
 
         memory_context = "No known user memories"
@@ -177,23 +176,23 @@ class Agent:
                 ]
             )
 
-        tool_context = "No tool results"
+        tool_context = "No execution history"
 
-        if tool_results:
+        if execution_history:
             tool_context = "\n\n".join([
                 f"""
-                Step {item['step']}
+                Step {item.step}
                 
-                Description: {item['description']}
+                Description: {item.description}
                 
-                Tool: {item['tool']}
+                Tool: {item.action}
                 
-                Argument: {item['argument']}
+                Argument: {item.arguments}
                 
-                Output: {json.dumps(item['result'], indent=2)}
+                Output: {json.dumps(item.result, indent=2)}
 
                 """
-                for item in tool_results
+                for item in execution_history
             ])
 
         return f"""

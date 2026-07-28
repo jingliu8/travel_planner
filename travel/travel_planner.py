@@ -1,5 +1,5 @@
 from agent import Agent
-from models.execution_result import ExecutionStatus
+from models.execution import ExecutionStatus
 from models.tools import TravelPlan, TravelRequest
 from travel.prompts import TRAVEL_USER_PROMPT, TRAVEL_PLANNER_SYSTEM_PROMPT
 

@@ -1,6 +1,6 @@
 from llm import LLMClient
 from agent import Agent
-from models.execution_result import ExecutionStatus
+from models.execution import ExecutionStatus
 from models.tools import TravelPlan
 from planning.planner import Planner
 from executor.plan_executor import PlanExecutor
@@ -70,7 +70,7 @@ def main():
     )
     result = travel_planner.generate_itinerary(request)
 
-    if result.status == ExecutionStatus.WAITING_FOR_USER:
+    while result.status == ExecutionStatus.WAITING_FOR_USER:
         print(result.question)
 
         user_answer = input("> ")
@@ -81,8 +81,7 @@ def main():
             output_schema=TravelPlan
         )
 
-    if result.status == ExecutionStatus.COMPLETED:
-        print(result.final_response)
+    print(result.final_response)
 
 if __name__ == "__main__":
     main()
